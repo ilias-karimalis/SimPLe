@@ -90,7 +90,7 @@ class SimPLe:
 
                     self.simulated_env.env_method('restart', initial_frames, indices=j)
 
-                losses = self.agent.learn(
+                losses = self.agent.learn( # this is the actual RL training step
                     self.config.rollout_length * self.config.agents,
                     verbose=False,
                     score_training=False,
@@ -140,10 +140,11 @@ class SimPLe:
                  'or changing the environment.')
             return self.train()
 
+        # Algorithm 1
         for epoch in trange(self.config.epochs, desc='Epoch'):
-            self.collect_interactions()
-            self.trainer.train(epoch, self.real_env)
-            self.train_agent_sim_env(epoch)
+            self.collect_interactions() # collect real data
+            self.trainer.train(epoch, self.real_env) # train the frame predictor
+            self.train_agent_sim_env(epoch) # train the agent in the simulated environment
 
         self.real_env.close()
         self.simulated_env.close()
@@ -186,6 +187,7 @@ if __name__ == '__main__':
     parser.add_argument('--stacking', type=float, default=4)
     parser.add_argument('--stack-internal-states', default=True, action='store_false')
     parser.add_argument('--target-loss-clipping', type=float, default=0.03)
+    parser.add_argument('--trust-region-beta', type=float, default=1.0)
     parser.add_argument('--use-ppo-lr-decay', default=False, action='store_true')
     parser.add_argument('--use-stochastic-model', default=True, action='store_false')
     parser.add_argument('--use-wandb', default=False, action='store_true')
