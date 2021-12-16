@@ -183,8 +183,6 @@ class Trainer:
                 frames_pred, reward_pred, values_pred = self.model(frames, actions, new_states_input, epsilon)
                 # Note, this reward_pred is a classifier output, hence being a 3 vector classsifying on {-1,0,1}
                 
-                self.last_model_frames_pred = frames_pred
-                self.last_frames_input = (frames, actions, new_states_input, epsilon)
 
                 if j < rollout_len - 1:
                     for k in range(self.config.batch_size):
@@ -203,11 +201,11 @@ class Trainer:
                 loss_reconstruct = loss_reconstruct.mean() - self.config.target_loss_clipping
                 
                 loss_trust_region = 0.0
-                if j > 0:
+                if j > 1:
                     frames_pred_new, _, _ = self.model(*self.last_frames_input)
                     frames_pred_old = self.last_model_frames_pred
                     loss_trust_region = self.config.trust_region_beta*self.trust_region_loss(frames_pred_new, frames_pred_old).mean()
-                    print(loss_trust_region)
+#                    print(loss_trust_region)
                 
 
                 loss_value = nn.MSELoss()(values_pred, values)
@@ -216,6 +214,9 @@ class Trainer:
                 if self.config.use_stochastic_model:
                     loss_lstm = self.model.stochastic_model.get_lstm_loss()
                     loss = loss + loss_lstm
+                
+                self.last_model_frames_pred = frames_pred.detach()
+                self.last_frames_input = (frames.detach(), actions.detach(), new_states_input.detach(), epsilon.detach())
 
                 self.optimizer.zero_grad()
                 loss.backward()
