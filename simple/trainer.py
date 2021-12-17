@@ -81,7 +81,8 @@ class Trainer:
     def trust_region_loss(self, frames_pred_new, frames_pred_old):
         frames_pred_new = torch.softmax(torch.permute(frames_pred_new, (0,2,3,4,1)), dim = 4)
         frames_pred_old = torch.softmax(torch.permute(frames_pred_old, (0,2,3,4,1)), dim = 4)
-        return torch.sum(torch.mul(frames_pred_new, torch.log(torch.div(frames_pred_new, frames_pred_old))), dim = 4)
+        loss = torch.sum(torch.mul(frames_pred_new, torch.log(torch.div(frames_pred_new, frames_pred_old))), dim = 4)
+        return torch.nan_to_num(loss, nan=0.0, posinf=0.0, neginf=0.0)
         
     
     def train(self, epoch, env, steps=15000):
@@ -205,7 +206,6 @@ class Trainer:
                     frames_pred_new, _, _ = self.model(*self.last_frames_input)
                     frames_pred_old = self.last_model_frames_pred
                     loss_trust_region = self.config.trust_region_beta*self.trust_region_loss(frames_pred_new, frames_pred_old).mean()
-#                    print(loss_trust_region)
                 
 
                 loss_value = nn.MSELoss()(values_pred, values)
