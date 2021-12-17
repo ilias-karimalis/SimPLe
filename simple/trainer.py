@@ -82,7 +82,9 @@ class Trainer:
         frames_pred_new = torch.softmax(torch.permute(frames_pred_new, (0,2,3,4,1)), dim = 4)
         frames_pred_old = torch.softmax(torch.permute(frames_pred_old, (0,2,3,4,1)), dim = 4)
         loss = torch.sum(torch.mul(frames_pred_new, torch.log(torch.div(frames_pred_new, frames_pred_old))), dim = 4)
-        return torch.nan_to_num(loss, nan=0.0, posinf=0.0, neginf=0.0)
+        loss = torch.nan_to_num(loss, nan=0.0, posinf=0.0, neginf=0.0)
+        print("loss ", torch.sum(loss))
+        return loss
         
     
     def train(self, epoch, env, steps=15000):
