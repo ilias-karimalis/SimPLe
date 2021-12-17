@@ -7,7 +7,8 @@ import torch
 from baselines import logger
 from baselines.common.tile_images import tile_images
 from baselines.common.vec_env import VecEnvWrapper
-from cloudpickle import cloudpickle
+import cloudpickle
+
 
 from atari_utils.envs import VecPytorchWrapper
 from atari_utils.utils import one_hot_encode
