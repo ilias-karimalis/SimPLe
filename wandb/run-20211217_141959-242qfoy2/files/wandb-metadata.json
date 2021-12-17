@@ -1,0 +1,26 @@
+{
+    "os": "Linux-5.3.18-59.27-default-x86_64-with-glibc2.10",
+    "python": "3.8.8",
+    "heartbeatAt": "2021-12-17T22:20:06.884594",
+    "startedAt": "2021-12-17T22:19:59.612160",
+    "docker": null,
+    "gpu": "TITAN Xp",
+    "gpu_count": 1,
+    "cpu_count": 8,
+    "cuda": null,
+    "args": [
+        "--use-wandb"
+    ],
+    "state": "running",
+    "program": "/global/scratch/alanmil/SimPLe/simple/__main__.py",
+    "codePath": "simple/__main__.py",
+    "git": {
+        "remote": "https://github.com/ilias-karimalis/SimPLe.git",
+        "commit": "c902da7fff19c5db9d9dd701f3dccb648ccae506"
+    },
+    "email": null,
+    "root": "/global/scratch/alanmil/SimPLe",
+    "host": "cersei",
+    "username": "alanmil",
+    "executable": "/global/scratch/alanmil/anaconda3/bin/python"
+}

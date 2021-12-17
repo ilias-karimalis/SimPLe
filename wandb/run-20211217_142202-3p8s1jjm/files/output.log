@@ -1,0 +1,64 @@
+
+
+
+
+
+Random exploration: 100%|████████████████████████████████████████████████████████████████████████████████| 6400/6400 [00:09<00:00, 650.36it/s]
+Epoch:   0%|                                                                                                           | 0/15 [00:00<?, ?it/s]
+
+
+
+
+
+
+Collecting interactions: 100%|██████████████████████████████████████████████████████████████████████████▉| 6395/6400 [00:15<00:00, 419.06it/s]/global/scratch/alanmil/anaconda3/lib/python3.8/site-packages/torch/_tensor.py:575: UserWarning: floor_divide is deprecated, and will be removed in a future version of pytorch. It currently rounds toward 0 (like the 'trunc' function NOT 'floor'). This results in incorrect rounding for negative values.
+To keep the current behavior, use torch.div(a, b, rounding_mode='trunc'), or for actual floor division, use torch.div(a, b, rounding_mode='floor'). (Triggered internally at  /pytorch/aten/src/ATen/native/BinaryOps.cpp:467.)
+  return torch.floor_divide(self, other)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch:   0%|                                                                                                           | 0/15 [05:13<?, ?it/s]
+Traceback (most recent call last):
+  File "/global/scratch/alanmil/anaconda3/lib/python3.8/runpy.py", line 194, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/global/scratch/alanmil/anaconda3/lib/python3.8/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/global/scratch/alanmil/SimPLe/simple/__main__.py", line 207, in <module>
+    simple.train()
+  File "/global/scratch/alanmil/SimPLe/simple/__main__.py", line 146, in train
+    self.trainer.train(epoch, self.real_env) # train the frame predictor
+  File "/global/scratch/alanmil/SimPLe/simple/trainer.py", line 214, in train
+    frames_pred_new, _, _ = self.model(*self.last_frames_input)
+  File "/global/scratch/alanmil/anaconda3/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1051, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/global/scratch/alanmil/SimPLe/simple/next_frame_predictor.py", line 334, in forward
+    target[batch_index] = standardize_frame(target[batch_index])
+  File "/global/scratch/alanmil/SimPLe/simple/utils.py", line 125, in standardize_frame
+    num_pixels = torch.tensor(x.shape[-1] * x.shape[-2], dtype=torch.float32).to(x.device)
+KeyboardInterrupt

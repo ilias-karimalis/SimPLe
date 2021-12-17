@@ -1,0 +1,1 @@
+{"model_step": 901, "epsilon": 0.9989455938339233, "loss": 0.10522095859050751, "loss_reconstruct": 0.01705041341483593, "loss_value": 0.02685084193944931, "loss_reward": 0.0, "loss_lstm": 0.05362872779369354, "_runtime": 215, "_timestamp": 1639779576, "_step": 18, "_wandb": {"runtime": 216}}

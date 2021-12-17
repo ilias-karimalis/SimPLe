@@ -1,0 +1,119 @@
+2021-12-17 14:20:00,208 INFO    MainThread:22620 [wandb_setup.py:_flush():71] setting env: {}
+2021-12-17 14:20:00,208 INFO    MainThread:22620 [wandb_setup.py:_flush():71] setting login settings: {}
+2021-12-17 14:20:00,208 INFO    MainThread:22620 [wandb_init.py:_log_setup():371] Logging user logs to /global/scratch/alanmil/SimPLe/wandb/run-20211217_141959-242qfoy2/logs/debug.log
+2021-12-17 14:20:00,208 INFO    MainThread:22620 [wandb_init.py:_log_setup():372] Logging internal logs to /global/scratch/alanmil/SimPLe/wandb/run-20211217_141959-242qfoy2/logs/debug-internal.log
+2021-12-17 14:20:00,208 INFO    MainThread:22620 [wandb_init.py:init():404] calling init triggers
+2021-12-17 14:20:00,208 INFO    MainThread:22620 [wandb_init.py:init():409] wandb.init called with sweep_config: {}
+config: {'agents': 16, 'batch_size': 4, 'bottleneck_bits': 128, 'bottleneck_noise': 0.1, 'clip_grad_norm': 1.0, 'compress_steps': 5, 'device': 'cuda', 'done_on_last_rollout_step': True, 'dropout': 0.15, 'env_name': 'Freeway', 'epochs': 15, 'experiment_name': '17-12-21-14:19:52', 'filter_double_steps': 3, 'frame_shape': (3, 105, 80), 'hidden_layers': 2, 'hidden_size': 96, 'input_noise': 0.05, 'latent_rnn_max_sampling': 0.5, 'latent_state_size': 128, 'latent_use_max_probability': 0.8, 'load_models': False, 'noop_max': 8, 'ppo_gamma': 0.99, 'ppo_lr': 0.0001, 'recurrent_state_size': 64, 'render_evaluation': False, 'render_training': False, 'residual_dropout': 0.5, 'rollout_length': 50, 'save_models': False, 'scheduled_sampling_decay_steps': 22250, 'simulation_flip_first_random_for_beginning': True, 'stacking': 4, 'stack_internal_states': True, 'target_loss_clipping': 0.03, 'trust_region_beta': 1.0, 'use_ppo_lr_decay': False, 'use_stochastic_model': True, 'use_wandb': True}
+2021-12-17 14:20:00,208 INFO    MainThread:22620 [wandb_init.py:init():460] starting backend
+2021-12-17 14:20:00,208 INFO    MainThread:22620 [backend.py:_multiprocessing_setup():99] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2021-12-17 14:20:00,213 INFO    MainThread:22620 [backend.py:ensure_launched():216] starting backend process...
+2021-12-17 14:20:00,232 INFO    MainThread:22620 [backend.py:ensure_launched():221] started backend process with pid: 22671
+2021-12-17 14:20:00,271 INFO    MainThread:22620 [wandb_init.py:init():469] backend started and connected
+2021-12-17 14:20:00,275 INFO    MainThread:22620 [wandb_init.py:init():533] updated telemetry
+2021-12-17 14:20:00,362 INFO    MainThread:22620 [wandb_init.py:init():563] communicating current version
+2021-12-17 14:20:02,157 INFO    MainThread:22620 [wandb_init.py:init():568] got version response 
+2021-12-17 14:20:02,157 INFO    MainThread:22620 [wandb_init.py:init():578] communicating run to backend with 30 second timeout
+2021-12-17 14:20:02,310 INFO    MainThread:22620 [wandb_init.py:init():606] starting run threads in backend
+2021-12-17 14:20:07,319 INFO    MainThread:22620 [wandb_run.py:_console_start():1810] atexit reg
+2021-12-17 14:20:07,337 INFO    MainThread:22620 [wandb_run.py:_redirect():1684] redirect: SettingsConsole.REDIRECT
+2021-12-17 14:20:07,337 INFO    MainThread:22620 [wandb_run.py:_redirect():1689] Redirecting console.
+2021-12-17 14:20:07,338 INFO    MainThread:22620 [wandb_run.py:_redirect():1745] Redirects installed.
+2021-12-17 14:20:07,338 INFO    MainThread:22620 [wandb_init.py:init():633] run started, returning control to user process
+2021-12-17 14:20:07,338 INFO    MainThread:22620 [wandb_watch.py:watch():43] Watching
+2021-12-17 14:20:32,392 INFO    MainThread:22620 [wandb_run.py:_atexit_cleanup():1780] got exitcode: 1
+2021-12-17 14:20:32,393 INFO    MainThread:22620 [wandb_run.py:_restore():1752] restore
+2021-12-17 14:20:35,184 INFO    MainThread:22620 [wandb_run.py:_wait_for_finish():1912] got exit ret: file_counts {
+  wandb_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 786
+  total_bytes: 786
+}
+
+2021-12-17 14:20:35,312 INFO    MainThread:22620 [wandb_run.py:_wait_for_finish():1912] got exit ret: file_counts {
+  wandb_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 786
+  total_bytes: 786
+}
+
+2021-12-17 14:20:35,520 INFO    MainThread:22620 [wandb_run.py:_wait_for_finish():1912] got exit ret: file_counts {
+  wandb_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 786
+  total_bytes: 786
+}
+
+2021-12-17 14:20:35,808 INFO    MainThread:22620 [wandb_run.py:_wait_for_finish():1912] got exit ret: file_counts {
+  wandb_count: 5
+}
+pusher_stats {
+  uploaded_bytes: 786
+  total_bytes: 23269
+}
+
+2021-12-17 14:20:35,912 INFO    MainThread:22620 [wandb_run.py:_wait_for_finish():1912] got exit ret: file_counts {
+  wandb_count: 6
+}
+pusher_stats {
+  uploaded_bytes: 786
+  total_bytes: 23296
+}
+
+2021-12-17 14:20:36,013 INFO    MainThread:22620 [wandb_run.py:_wait_for_finish():1912] got exit ret: file_counts {
+  wandb_count: 6
+}
+pusher_stats {
+  uploaded_bytes: 23296
+  total_bytes: 23296
+}
+
+2021-12-17 14:20:36,114 INFO    MainThread:22620 [wandb_run.py:_wait_for_finish():1912] got exit ret: file_counts {
+  wandb_count: 6
+}
+pusher_stats {
+  uploaded_bytes: 23296
+  total_bytes: 23296
+}
+
+2021-12-17 14:20:36,243 INFO    MainThread:22620 [wandb_run.py:_wait_for_finish():1912] got exit ret: file_counts {
+  wandb_count: 6
+}
+pusher_stats {
+  uploaded_bytes: 23296
+  total_bytes: 23296
+}
+
+2021-12-17 14:20:36,343 INFO    MainThread:22620 [wandb_run.py:_wait_for_finish():1912] got exit ret: file_counts {
+  wandb_count: 6
+}
+pusher_stats {
+  uploaded_bytes: 23296
+  total_bytes: 23296
+}
+
+2021-12-17 14:20:36,444 INFO    MainThread:22620 [wandb_run.py:_wait_for_finish():1912] got exit ret: file_counts {
+  wandb_count: 6
+}
+pusher_stats {
+  uploaded_bytes: 23296
+  total_bytes: 23296
+}
+
+2021-12-17 14:20:36,702 INFO    MainThread:22620 [wandb_run.py:_wait_for_finish():1912] got exit ret: done: true
+exit_result {
+}
+file_counts {
+  wandb_count: 6
+}
+pusher_stats {
+  uploaded_bytes: 23296
+  total_bytes: 23296
+}
+local_info {
+}
+
+2021-12-17 14:20:38,081 INFO    MainThread:22620 [wandb_run.py:_append_files():2180] logging synced files

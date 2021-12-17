@@ -79,12 +79,18 @@ class Trainer:
     and a summation for the pixel-wise KL divergence. We can then post process this KL matrix however we like.
     """
     def trust_region_loss(self, frames_pred_new, frames_pred_old):
-        frames_pred_new = torch.softmax(torch.permute(frames_pred_new, (0,2,3,4,1)), dim = 4)
-        frames_pred_old = torch.softmax(torch.permute(frames_pred_old, (0,2,3,4,1)), dim = 4)
-        loss = torch.sum(torch.mul(frames_pred_new, torch.log(torch.div(frames_pred_new, frames_pred_old))), dim = 4)
-        loss = torch.nan_to_num(loss, nan=0.0, posinf=0.0, neginf=0.0)
-        print("loss ", torch.sum(loss))
-        return loss
+        frames_pred_new = torch.clip(torch.softmax(torch.permute(frames_pred_new, (0,2,3,4,1)), dim = 4), 1e-10, 1)
+        frames_pred_old = torch.clip(torch.softmax(torch.permute(frames_pred_old, (0,2,3,4,1)), dim = 4), 1e-10, 1)
+#        frames_pred_new = torch.softmax(torch.permute(frames_pred_new, (0,2,3,4,1)), dim = 4)
+#        frames_pred_old = torch.softmax(torch.permute(frames_pred_old, (0,2,3,4,1)), dim = 4)
+#        loss = torch.div(frames_pred_new, frames_pred_old)
+#        loss = torch.log(loss)
+#        loss = torch.log(frames_pred_new) - torch.log(frames_pred_old)
+#        loss = torch.mul(frames_pred_new, loss)
+#        loss = torch.sum(loss, dim = 4)
+#        loss =
+#        loss = torch.nan_to_num(loss, nan=0.0, posinf=0.0, neginf=0.0)
+        return torch.sum(torch.mul(frames_pred_new, torch.log(frames_pred_new) - torch.log(frames_pred_old)), dim = 4)
         
     
     def train(self, epoch, env, steps=15000):
@@ -158,7 +164,7 @@ class Trainer:
 
             frames = preprocess_state(frames)
 
-            n_losses = 5 if self.config.use_stochastic_model else 4
+            n_losses = 6 if self.config.use_stochastic_model else 5
             losses = torch.empty((rollout_len, n_losses))
 
             if self.config.stack_internal_states:
@@ -208,24 +214,55 @@ class Trainer:
                     frames_pred_new, _, _ = self.model(*self.last_frames_input)
                     frames_pred_old = self.last_model_frames_pred
                     loss_trust_region = self.config.trust_region_beta*self.trust_region_loss(frames_pred_new, frames_pred_old).mean()
+#                    print(loss_trust_region)
                 
 
                 loss_value = nn.MSELoss()(values_pred, values)
                 loss_reward = reward_criterion(reward_pred, rewards)
                 loss = loss_reconstruct + loss_value + loss_reward + loss_trust_region
+                
+                loss_lstm = 0.0
                 if self.config.use_stochastic_model:
                     loss_lstm = self.model.stochastic_model.get_lstm_loss()
                     loss = loss + loss_lstm
                 
+                if not torch.is_tensor(frames_pred):
+                    frames_pred = torch.tensor(frames_pred)
+                if not torch.is_tensor(frames):
+                    frames = torch.tensor(frames)
+                if not torch.is_tensor(actions):
+                    actions = torch.tensor(actions)
+                if not torch.is_tensor(new_states_input):
+                    new_states_input = torch.tensor(new_states_input)
+                if not torch.is_tensor(epsilon):
+                    epsilon = torch.tensor(epsilon)
+
                 self.last_model_frames_pred = frames_pred.detach()
                 self.last_frames_input = (frames.detach(), actions.detach(), new_states_input.detach(), epsilon.detach())
 
+
+#                torch.autograd.set_detect_anomaly(True)
+
                 self.optimizer.zero_grad()
                 loss.backward()
-                clip_grad_norm_(self.model.parameters(), self.config.clip_grad_norm)
+                
+
+                try:
+                    clip_grad_norm_(self.model.parameters(), self.config.clip_grad_norm, error_if_nonfinite=True)
+                except:
+                    for name, param in self.model.named_parameters():
+                        if param.requires_grad:
+                            print (name, param.grad)
+                    print("loss_reconstruct", loss_reconstruct)
+                    print("loss_val", loss_value)
+                    print("loss_reward", loss_reward)
+                    print("loss_trust", loss_trust_region)
+                    print("loss_lstm", loss_lstm)
+                    raise
+
                 self.optimizer.step()
 
-                tab = [float(loss), float(loss_reconstruct), float(loss_value), float(loss_reward)]
+                tab = [float(loss), float(loss_reconstruct), float(loss_value), float(loss_reward), float(loss_trust_region)]
                 if self.config.use_stochastic_model:
                     tab.append(float(loss_lstm))
                 losses[j] = torch.tensor(tab)
@@ -235,7 +272,8 @@ class Trainer:
                 'loss': float(losses[0]),
                 'loss_reconstruct': float(losses[1]),
                 'loss_value': float(losses[2]),
-                'loss_reward': float(losses[3])
+                'loss_reward': float(losses[3]),
+                'loss_trust_region': float(losses[5])
             }
             if self.config.use_stochastic_model:
                 metrics.update({'loss_lstm': float(losses[4])})
