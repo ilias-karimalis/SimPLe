@@ -75,7 +75,7 @@ class SimPLe:
             z = 2
         if epoch == 14:
             z = 3
-        n = 1000
+        n = self.config.agent_steps
         self.agent.set_env(self.simulated_env)
 
         postfix = {}
@@ -143,7 +143,7 @@ class SimPLe:
         # Algorithm 1
         for epoch in trange(self.config.epochs, desc='Epoch'):
             self.collect_interactions() # collect real data
-            self.trainer.train(epoch, self.real_env) # train the frame predictor
+            self.trainer.train(epoch, self.real_env, steps=self.config.world_model_steps) # train the frame predictor
             self.train_agent_sim_env(epoch) # train the agent in the simulated environment
 
         self.real_env.close()
@@ -163,6 +163,8 @@ if __name__ == '__main__':
     parser.add_argument('--dropout', type=float, default=0.15)
     parser.add_argument('--env-name', type=str, default='Freeway')
     parser.add_argument('--epochs', type=int, default=15)
+    parser.add_argument('--world-model-steps', type=int, default=15000)
+    parser.add_argument('--agent-steps', type=int, default=1000)
     parser.add_argument('--experiment-name', type=str, default=strftime('%d-%m-%y-%H:%M:%S'))
     parser.add_argument('--filter-double-steps', type=int, default=3)
     parser.add_argument('--frame-shape', type=int, nargs=3, default=(3, 105, 80))
