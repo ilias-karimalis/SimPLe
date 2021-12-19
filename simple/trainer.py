@@ -9,6 +9,8 @@ from itertools import product
 
 from atari_utils.logger import WandBLogger
 from simple.adafactor import Adafactor
+from matplotlib import animation
+import matplotlib.pyplot as plt
 
 
 
@@ -81,21 +83,15 @@ class Trainer:
     def trust_region_loss(self, frames_pred_new, frames_pred_old):
         frames_pred_new = torch.clip(torch.softmax(torch.permute(frames_pred_new, (0,2,3,4,1)), dim = 4), 1e-10, 1)
         frames_pred_old = torch.clip(torch.softmax(torch.permute(frames_pred_old, (0,2,3,4,1)), dim = 4), 1e-10, 1)
-#        frames_pred_new = torch.softmax(torch.permute(frames_pred_new, (0,2,3,4,1)), dim = 4)
-#        frames_pred_old = torch.softmax(torch.permute(frames_pred_old, (0,2,3,4,1)), dim = 4)
-#        loss = torch.div(frames_pred_new, frames_pred_old)
-#        loss = torch.log(loss)
-#        loss = torch.log(frames_pred_new) - torch.log(frames_pred_old)
-#        loss = torch.mul(frames_pred_new, loss)
-#        loss = torch.sum(loss, dim = 4)
-#        loss =
-#        loss = torch.nan_to_num(loss, nan=0.0, posinf=0.0, neginf=0.0)
         return torch.sum(torch.mul(frames_pred_new, torch.log(frames_pred_new) - torch.log(frames_pred_old)), dim = 4)
         
     
-    def train(self, epoch, env, steps=15000):
+    def train(self, epoch, env, steps=15000, render_rollout=False):
         if epoch == 0:
             steps *= 3
+            
+        render_frames = []
+        true_frames = []
 
         c, h, w = self.config.frame_shape
         rollout_len = self.config.rollout_length
@@ -161,6 +157,15 @@ class Trainer:
 
             for j in range(self.config.batch_size):
                 frames[j] = env.buffer[indices[j]][0].clone()
+                if render_rollout: # only works with batch size 1
+                    render_frames.append(torch.permute(env.buffer[indices[j]][0].clone()[0:3], (1,2,0)).cpu())
+                    render_frames.append(torch.permute(env.buffer[indices[j]][0].clone()[3:6], (1,2,0)).cpu())
+                    render_frames.append(torch.permute(env.buffer[indices[j]][0].clone()[6:9], (1,2,0)).cpu())
+                    render_frames.append(torch.permute(env.buffer[indices[j]][0].clone()[9:], (1,2,0)).cpu())
+                    true_frames.append(torch.permute(env.buffer[indices[j]][0].clone()[0:3], (1,2,0)).cpu())
+                    true_frames.append(torch.permute(env.buffer[indices[j]][0].clone()[3:6], (1,2,0)).cpu())
+                    true_frames.append(torch.permute(env.buffer[indices[j]][0].clone()[6:9], (1,2,0)).cpu())
+                    true_frames.append(torch.permute(env.buffer[indices[j]][0].clone()[9:], (1,2,0)).cpu())
 
             frames = preprocess_state(frames)
 
@@ -205,6 +210,11 @@ class Trainer:
 #                loss_reconstruct = nn.CrossEntropyLoss(reduction='none')(frames_pred, new_states)
                 loss_reconstruct = self.totally_not_cross_entropy_KL_loss(frames_pred, new_states)
                 
+                if render_rollout:
+                    render_frames.append(torch.permute(torch.argmax(frames_pred[0], dim=0), (1,2,0)).cpu())
+                    true_frames.append(torch.permute(new_states[0], (1,2,0)).cpu())
+
+                
                 clip = torch.tensor(self.config.target_loss_clipping).to(self.config.device)
                 loss_reconstruct = torch.max(loss_reconstruct, clip)
                 loss_reconstruct = loss_reconstruct.mean() - self.config.target_loss_clipping
@@ -247,18 +257,8 @@ class Trainer:
                 loss.backward()
                 
 
-                try:
-                    clip_grad_norm_(self.model.parameters(), self.config.clip_grad_norm, error_if_nonfinite=True)
-                except:
-                    for name, param in self.model.named_parameters():
-                        if param.requires_grad:
-                            print (name, param.grad)
-                    print("loss_reconstruct", loss_reconstruct)
-                    print("loss_val", loss_value)
-                    print("loss_reward", loss_reward)
-                    print("loss_trust", loss_trust_region)
-                    print("loss_lstm", loss_lstm)
-                    raise
+
+                clip_grad_norm_(self.model.parameters(), self.config.clip_grad_norm, error_if_nonfinite=True)
 
                 self.optimizer.step()
 
@@ -266,6 +266,36 @@ class Trainer:
                 if self.config.use_stochastic_model:
                     tab.append(float(loss_lstm))
                 losses[j] = torch.tensor(tab)
+                
+                if render_rollout:
+                    path='gifs/'
+                    filename=f'hallucinations_{i}.gif'
+                    #Mess with this to change frame size
+                    plt.figure(figsize=(render_frames[0].shape[1] / 36.0, render_frames[0].shape[0] / 36.0), dpi=200)
+
+                    patch = plt.imshow(render_frames[0])
+                    plt.axis('off')
+
+                    def animate(i):
+                        patch.set_data(render_frames[i])
+
+                    anim = animation.FuncAnimation(plt.gcf(), animate, frames = len(render_frames), interval=50)
+                    anim.save(path + filename, writer='imagemagick', fps=30)
+                    
+                    path='./'
+                    filename=f'truth_{i}.gif'
+                    #Mess with this to change frame size
+                    plt.figure(figsize=(true_frames[0].shape[1] / 36.0, true_frames[0].shape[0] / 36.0), dpi=200)
+
+                    patch = plt.imshow(true_frames[0])
+                    plt.axis('off')
+
+                    def animate(i):
+                        patch.set_data(true_frames[i])
+
+                    anim = animation.FuncAnimation(plt.gcf(), animate, frames = len(true_frames), interval=50)
+                    anim.save(path + filename, writer='imagemagick', fps=30)
+
 
             losses = torch.mean(losses, dim=0)
             metrics = {
@@ -285,6 +315,9 @@ class Trainer:
                 self.model_step += rollout_len
 
             iterator.set_postfix(metrics)
+            
+
+
 
         empty_cache()
         if self.config.save_models:

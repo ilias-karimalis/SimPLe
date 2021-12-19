@@ -126,8 +126,17 @@ class SimPLe:
 
     def load_models(self):
         self.model.load_state_dict(torch.load(os.path.join('models', 'model.pt')))
-        self.agent = PPO(self.simulated_env, config, num_steps=self.config.rollout_length, num_mini_batch=5)
+        self.agent = PPO(self.simulated_env, config.device, num_steps=self.config.rollout_length, num_mini_batch=5)
         self.agent.load(os.path.join('models', 'ppo.pt'))
+
+        # make gifs of agent
+        self.evaluate_agent()
+        
+        # make gifs of world model rollout
+        self.collect_interactions()
+        self.trainer.train(epoch = 1, env = self.real_env, steps = 1,  render_rollout=True)
+
+        
 
     def train(self):
         self.random_search()
