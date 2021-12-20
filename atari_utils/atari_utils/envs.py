@@ -11,6 +11,9 @@ from baselines.common.atari_wrappers import NoopResetEnv
 from baselines.common.vec_env import ShmemVecEnv, VecEnvWrapper
 import numpy as np
 from gym.wrappers import TimeLimit
+from matplotlib import animation
+import matplotlib.pyplot as plt
+
 
 from atari_utils.utils import one_hot_encode, DummyVecEnv
 
@@ -52,12 +55,35 @@ class WarpFrame(gym.ObservationWrapper):
 
         return obs
 
-
 class RenderingEnv(gym.ObservationWrapper):
 
+    def __init__(self, env):
+        super().__init__(env)
+        self.frames = []
+
     def observation(self, observation):
-        self.render()
+        self.frames.append(self.render(mode="rgb_array"))
         return observation
+        
+    def close(self):
+        # from https://gist.github.com/botforge/64cbb71780e6208172bbf03cd9293553
+        if len(self.frames) > 0:
+            path='gifs/'
+            filename='gym_animation.gif'
+
+            #Mess with this to change frame size
+            plt.figure(figsize=(self.frames[0].shape[1] / 36.0, self.frames[0].shape[0] / 36.0), dpi=200)
+
+            patch = plt.imshow(self.frames[0])
+            plt.axis('off')
+
+            def animate(i):
+                patch.set_data(self.frames[i])
+
+            anim = animation.FuncAnimation(plt.gcf(), animate, frames = len(self.frames), interval=50)
+            anim.save(path + filename, writer='imagemagick', fps=30)
+        super().close()
+
 
 
 class ClipRewardEnv(gym.RewardWrapper):

@@ -11,6 +11,7 @@ from atari_utils.evaluation import evaluate
 from atari_utils.logger import WandBLogger
 from atari_utils.policy_wrappers import SampleWithTemperature
 from atari_utils.ppo_wrapper import PPO
+from atari_utils.reinforce import REINFORCE
 from atari_utils.utils import print_config, disable_baselines_logging
 from simple.subproc_vec_env import make_simulated_env
 from simple.trainer import Trainer
@@ -36,14 +37,24 @@ class SimPLe:
         self.model = NextFramePredictor(config, self.real_env.action_space.n).to(config.device)
         self.trainer = Trainer(self.model, config)
         self.simulated_env = make_simulated_env(config, self.model, self.real_env.action_space)
-        self.agent = PPO(
-            self.simulated_env,
-            config.device,
-            gamma=config.ppo_gamma,
-            num_steps=self.config.rollout_length,
-            num_mini_batch=5,
-            lr=config.ppo_lr
-        )
+        
+        if self.config.policy_optimizer == 'reinforce':
+            self.agent = REINFORCE(
+                self.simulated_env,
+                config.device,
+                gamma=config.ppo_gamma,
+                num_steps=self.config.rollout_length,
+                num_mini_batch=5,
+            )
+        else:
+            self.agent = PPO(
+                self.simulated_env,
+                config.device,
+                gamma=config.ppo_gamma,
+                num_steps=self.config.rollout_length,
+                num_mini_batch=5,
+                lr=config.ppo_lr
+            )
 
         if self.config.use_wandb:
             import wandb
@@ -126,8 +137,17 @@ class SimPLe:
 
     def load_models(self):
         self.model.load_state_dict(torch.load(os.path.join('models', 'model.pt')))
-        self.agent = PPO(self.simulated_env, config, num_steps=self.config.rollout_length, num_mini_batch=5)
+        self.agent = PPO(self.simulated_env, config.device, num_steps=self.config.rollout_length, num_mini_batch=5)
         self.agent.load(os.path.join('models', 'ppo.pt'))
+
+        # make gifs of agent
+        self.evaluate_agent()
+        
+        # make gifs of world model rollout
+        self.collect_interactions()
+        self.trainer.train(epoch = 1, env = self.real_env, steps = 1,  render_rollout=True)
+
+        
 
     def train(self):
         self.random_search()
@@ -193,6 +213,7 @@ if __name__ == '__main__':
     parser.add_argument('--use-ppo-lr-decay', default=False, action='store_true')
     parser.add_argument('--use-stochastic-model', default=True, action='store_false')
     parser.add_argument('--use-wandb', default=False, action='store_true')
+    parser.add_argument('--policy-optimizer', type=str, default='ppo')
     config = parser.parse_args()
 
     print_config(config)
