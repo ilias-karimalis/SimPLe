@@ -101,6 +101,30 @@ class REINFORCE:
         rollouts.compute_returns(next_value, False, self.gamma, None)
         value_loss, action_loss, dist_entropy = self.update(rollouts)
 
+        eval_metrics = evaluate(  # TODO add steps tracking
+            eval_policy_wrapper(self),
+            eval_env_name,
+            self.device,
+            agents=eval_agents,
+            episodes=eval_episodes,
+            verbose=False
+        )
+        eval_mean_scores.append(eval_metrics['eval_score_mean'])
+        eval_mean_scores_std.append(eval_metrics['eval_score_std'])
+
+        metrics = {
+            'ppo_value_loss': float(value_loss),
+            'ppo_action_loss': float(action_loss)
+        }
+        if score_queue and score_training:
+            metrics.update({'score_mean': moving_average_score[-1]})
+        if eval_mean_scores:
+            metrics.update({'eval_score_mean': eval_mean_scores[-1]})
+        if logger is not None:
+            logger.log(metrics)
+
+        return eval_mean_scores
+
 
     def update(self, rollouts):
         value_loss_epoch = 0
@@ -128,11 +152,6 @@ class REINFORCE:
                 action_loss = -torch.min(surr1, surr2).mean()
                 '''
 
-                '''
-                still need to implement  -log_pi(a_t | s_t) * sum_{t'=t}^T log(pi(a_t' | s_t') / pi_old(a_t' | s_t'))
-                '''
-
-
                 if self.use_clipped_value_loss:
                     value_pred_clipped = value_preds_batch + \
                                          (values - value_preds_batch).clamp(-self.clip_param, self.clip_param)
@@ -143,7 +162,10 @@ class REINFORCE:
                                                  value_losses_clipped).mean()
                 else:
                     value_loss = 0.5 * (return_batch - values).pow(2).mean()
-
+                
+                '''
+                this loss is equivalent to SAC
+                '''
                 self.optimizer.zero_grad()
                 (value_loss * self.value_loss_coef + action_loss -
                  dist_entropy * self.entropy_coef).backward()
@@ -154,6 +176,14 @@ class REINFORCE:
                 value_loss_epoch += value_loss.item()
                 action_loss_epoch += action_loss.item()
                 dist_entropy_epoch += dist_entropy.item()
+            
+        num_updates = self.epoch * self.num_mini_batch
+
+        value_loss_epoch /= num_updates
+        action_loss_epoch /= num_updates
+        dist_entropy_epoch /= num_updates
+
+        return value_loss_epoch, action_loss_epoch, dist_entropy_epoch
     
 
     def set_env(self, env):
