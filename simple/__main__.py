@@ -20,8 +20,9 @@ from simple.next_frame_predictor import NextFramePredictor
 
 class SimPLe:
 
-    def __init__(self, config):
+    def __init__(self, config, result_directory):
         self.config = config
+        self.result_directory = result_directory
         self.logger = None
         if self.config.use_wandb:
             self.logger = WandBLogger()
@@ -117,7 +118,7 @@ class SimPLe:
                 t.set_postfix(postfix)
 
         if self.config.save_models:
-            self.agent.save(os.path.join('models', 'ppo.pt'))
+            self.agent.save(os.path.join(self.result_directory, 'ppo.pt'))
 
     def evaluate_agent(self):
         metrics = evaluate(
@@ -163,7 +164,7 @@ class SimPLe:
         # Algorithm 1
         for epoch in trange(self.config.epochs, desc='Epoch'):
             self.collect_interactions() # collect real data
-            self.trainer.train(epoch, self.real_env, steps=self.config.world_model_steps) # train the frame predictor
+            self.trainer.train(epoch, self.real_env, self.result_directory, steps=self.config.world_model_steps) # train the frame predictor
             self.train_agent_sim_env(epoch) # train the agent in the simulated environment
 
         self.real_env.close()
@@ -219,11 +220,15 @@ if __name__ == '__main__':
     print_config(config)
     disable_baselines_logging()
     torch.multiprocessing.set_sharing_strategy('file_system')
+    result_directory = f'models/{config.env_name}_{config.experiment_name}'
 
     if config.save_models and not os.path.isdir('models'):
         os.mkdir('models')
 
-    simple = SimPLe(config)
+    if config.save_models:
+        os.mkdir(result_directory)
+
+    simple = SimPLe(config, result_directory)
     if config.load_models:
         simple.load_models()
     else:

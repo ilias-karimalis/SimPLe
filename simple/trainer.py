@@ -86,7 +86,7 @@ class Trainer:
         return torch.sum(torch.mul(frames_pred_new, torch.log(frames_pred_new) - torch.log(frames_pred_old)), dim = 4)
         
     
-    def train(self, epoch, env, steps=15000, render_rollout=False):
+    def train(self, epoch, env, result_directory, steps=15000, render_rollout=False):
         if epoch == 0:
             steps *= 3
             
@@ -321,4 +321,4 @@ class Trainer:
 
         empty_cache()
         if self.config.save_models:
-            torch.save(self.model.state_dict(), os.path.join('models', 'model.pt'))
+            torch.save(self.model.state_dict(), os.path.join(result_directory, 'model.pt'))
